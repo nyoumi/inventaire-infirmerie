@@ -80,7 +80,7 @@ router.post("/login" , (req, res ,  next)=>{
 router.get("/getUserData",(req,res,next)=>{
   User.find().then(documents=>{
     res.status(200).json({
-      message : 'supplier added sucessfully',
+      //message : 'supplier added sucessfully',
       users :documents
     });
   });

@@ -15,12 +15,12 @@ const pickedUpOdersRoutes = require('./routes/pickedUpOders');
 
 
 
-mongoose.connect('mongodb+srv://lalana:OJx2X4IllVNl9up4@cluster0-rjtww.mongodb.net/pharmacy?retryWrites=true&w=majority',{useNewUrlParser: true , useUnifiedTopology: true})
+mongoose.connect('mongodb://localhost:27017',{useNewUrlParser: true , useUnifiedTopology: true})
   .then(()=>{
     console.log('connected to database!');
   })
   .catch(()=>{
-    console.log('connection failed! ');
+    console.log('connection to database failed! ');
   });
   mongoose.set('useCreateIndex', true);
 
