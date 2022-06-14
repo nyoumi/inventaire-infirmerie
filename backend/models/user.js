@@ -8,7 +8,9 @@ const userSchema = mongoose.Schema({
   email: {type: String , require:true, unique:true} ,
   password: {type: String , require:true},
   role: {type: String , require:true},
-  dateTime: {type: Date, default: Date.now , require:true}
+  dateTime: {type: Date, default: Date.now , require:true},
+  pharmacy: {type: String , require:false},
+
 });
 
 userSchema.plugin(uniqueValidator);

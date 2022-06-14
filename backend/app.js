@@ -15,12 +15,23 @@ const pickedUpOdersRoutes = require('./routes/pickedUpOders');
 
 
 
-mongoose.connect('mongodb://localhost:27017',{useNewUrlParser: true , useUnifiedTopology: true})
+
+const swaggerUi = require('swagger-ui-express');
+
+const swaggerDocument = require("./swagger/swagger.json");
+
+
+
+
+//mongoose.connect("mongodb://imran:test_password@mongo:27017/?authSource=admin",{useNewUrlParser: true , useUnifiedTopology: true})
+mongoose.connect("mongodb://localhost:27017",{useNewUrlParser: true , useUnifiedTopology: true})
+
   .then(()=>{
     console.log('connected to database!');
   })
-  .catch(()=>{
+  .catch((error)=>{
     console.log('connection to database failed! ');
+    console.log(error)
   });
   mongoose.set('useCreateIndex', true);
 
@@ -116,5 +127,9 @@ app.use("/api/doctorUser",doctorUserRoutes);
 app.use("/api/doctorOder",doctorOderRoutes);
 app.use("/api/verifiedDoctorOder",verifiedDoctorOderRoutes);
 app.use("/api/pickedUpOders",pickedUpOdersRoutes);
+
+
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+
 
 module.exports = app;

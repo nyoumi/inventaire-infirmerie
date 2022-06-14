@@ -5,7 +5,9 @@ const supplierSchema = mongoose.Schema({
   name: {type: String , require:true},
   email: {type: String , require:true},
   contact: {type: String , require:true},
-  drugsAvailable: {type: String , require:true}
+  drugsAvailable: {type: String , require:true},
+  pharmacy: {type: String , require:false},
+
 })
 
 module.exports = mongoose.model('Supplier',supplierSchema);

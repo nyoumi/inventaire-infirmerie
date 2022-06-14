@@ -7,7 +7,9 @@ const salesSchema = mongoose.Schema({
   totalPrice: {type: String , require:true},
   tax: {type: String , require:true},
   paidAmount: {type: String , require:true},
-  balance : { type: String , require: true}
+  balance : { type: String , require: true},
+  pharmacy: {type: String , require:true},
+
 })
 
 module.exports = mongoose.model('Sales',salesSchema);
