@@ -37,6 +37,9 @@ const onError = error => {
   }
 };
 
+const dotenv = require('dotenv');
+dotenv.config();
+
 const onListening = () => {
   const addr = server.address();
   const bind = typeof port === "string" ? "pipe " + port : "port " + port;
@@ -45,6 +48,7 @@ const onListening = () => {
 };
 
 const port = normalizePort(process.env.PORT || "3000");
+console.log(`pharmacy port is ${port}`);
 app.set("port", port);
 
 const server = http.createServer(app);
