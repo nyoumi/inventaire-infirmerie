@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const PickedUpDoctorOder = require('../models/pickedUpOders');
-
+/* 
 router.post("",(req,res,next)=>{
   const PickedUpDocOder = new PickedUpDoctorOder({
     doctorName: req.body.doctorName,
@@ -32,7 +32,7 @@ router.get("",(req,res,next)=>{
     });
   });
 });
-
+ */
 
 
 

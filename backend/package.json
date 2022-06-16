@@ -3,8 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "swagger-autogen": "node swagger/swagger.js",
     "start": "node server.js",
-    "swagger-autogen": "node swagger/swagger.js"
+    "dev": "npm run swagger-autogen & npm run start "
+
+
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

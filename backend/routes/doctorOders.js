@@ -5,7 +5,7 @@ const nodemailer = require("nodemailer");
 // var fs = require('fs');
 
 const DoctorOder = require('../models/doctorOders');
-
+/* 
 
 router.post("",(req,res,next)=>{
   const docOder = new DoctorOder({
@@ -29,8 +29,8 @@ router.post("",(req,res,next)=>{
 
   });
 
-  });
-
+  }); */
+/* 
   router.get("",(req,res,next)=>{
     DoctorOder.find().then(documents=>{
       res.status(200).json({
@@ -46,8 +46,8 @@ router.post("",(req,res,next)=>{
       res.status(200).json({ message: 'Doctor order deleted!' });
     });
   });
-
-  router.post("/sendmail", (req, res) => {
+ */
+  /* router.post("/sendmail", (req, res) => {
     console.log("request came");
     let user = req.body;
     sendMail(user, info => {
@@ -173,5 +173,5 @@ router.post("",(req,res,next)=>{
     callback(info);
   }
 
-
+ */
   module.exports = router;

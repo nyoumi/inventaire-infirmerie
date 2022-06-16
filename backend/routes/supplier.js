@@ -4,7 +4,7 @@ const checkAuth = require("../middleware/check-auth");
 const checkDocAuth = require("../middleware/check-docAuth");
 
 const Supplier = require('../models/supplier');
-
+/* 
 router.post("",checkAuth,(req,res,next)=>{
   const supplier = new Supplier({
     supplierID: req.body.supplierID,
@@ -64,5 +64,5 @@ router.post("",checkAuth,(req,res,next)=>{
       res.status(200).json({ message: 'Supplier deleted!' });
     });
   });
-
+ */
   module.exports = router;

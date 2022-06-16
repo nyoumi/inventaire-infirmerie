@@ -3,25 +3,99 @@ const router = express.Router();
 const checkAuth = require("../middleware/check-auth");
 
 const Sales = require('../models/sales');
+const Drug = require('../models/drugs');
 
 router.post("",(req,res,next)=>{
   const sales = new Sales({
-    drugName: req.body.drugName,
-    totalPrice: req.body.totalPrice,
-    tax: req.body.tax,
-    paidAmount: req.body.paidAmount,
-    balance: req.body.balance
+    drugName: String= req.body.drugName,
+    drugId: req.body.drugId,
+    dateTime:Date= req.body.dateTime,
+    quantity :Number=  req.body.quantity,
+    pharmacy: req.body.pharmacy,
+    user_cuid : req.body.user_cuid
   });
 
-  sales.save().then(createdSales=>{
-  res.status(201).json({
-    message:'Sales Added Successfully',
-    salesId : createdSales._id
-  });
+
+    Drug.findById(sales.drugId).then(drug =>{
+      if(drug){
+        drug.quantity=(drug.quantity|| 0) - sales.quantity;
+        console.log(drug)
+
+        if(drug.quantity>=0){
+          Drug.updateOne({_id: sales.drugId}, drug).then(result => {
+            console.log(result);
+            sales.save().then(createdSale=>{
+              res.status(200).json(createdSale);
+            })
+           
+          },err=>{
+            console.log(err);
+            res.status(204).json({message : "error updating drug"});
+          });
+        }
+        
+
+       
+      }else{
+        res.status(204).json({message:'Inventory not found'});
+      }
+    },err=>{
+      console.log(err)
+      res.status(204).json({message : "error updating drug"});
+      
+    });
+ 
 
   });
 
+  router.get("/",(req,res,next)=>{
+    const pageSize = +req.query.pagesize;
+    const currentPage = +req.query.page;
+
+    const pharmacyId = req.query.pharmacyId;
+    const drugId = req.query.drugId;
+
+
+    var postQuery
+
+    if(drugId){
+       postQuery = Sales.find({drugId:drugId});
+  
+    }else{
+      if(pharmacyId){
+         postQuery = Sales.find({pharmacy:pharmacyId});
+    
+      }else{
+         postQuery = Sales.find();
+      }
+    }
+
+    if(pageSize && currentPage){
+      postQuery
+        .skip(pageSize * (currentPage-1))
+        .limit(pageSize);
+    }
+    postQuery.then(documents=>{
+      res.status(200).json(documents);
+    },err=>{
+      console.log(err);
+      res.status(204).json({message : "error reading sales list"});
+    });
   });
+
+  router.get("/:id",(req,res,next)=>{
+    Sales.findById(req.params.id).then(sale =>{
+      if(sale){
+        res.status(200).json(sale);
+      }else{
+        res.status(200).json({message:'sale not found'});
+      }
+    },err=>{
+      console.log(err)
+      res.status(204).json({message:'sale not found'});
+    });
+  });
+
 
   router.get("/getSalesChartInfo",(req,res,next)=>{
 
@@ -35,20 +109,12 @@ router.post("",(req,res,next)=>{
                                     }}
                                   ])
     .then(documents=>{
-      res.status(200).json({
-        message : 'sales chart details obtaine sucessfully',
-        sales :documents
-      });
+      res.status(200).json(
+        documents
+      );
     });
   });
 
-  router.get("",(req,res,next)=>{
-    Sales.find().then(documents=>{
-      res.status(200).json({
-        message : 'sales added sucessfully',
-        sales :documents
-      });
-    });
-  });
+
 
   module.exports = router;

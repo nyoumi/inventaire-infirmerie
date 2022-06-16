@@ -1,9 +1,9 @@
-const express = require("express");
+ const express = require("express");
 const router = express.Router();
 const nodemailer = require("nodemailer");
 
 const VerifiedDoctorOder = require('../models/verifiedDoctorOders');
-
+/*
 router.post("",(req,res,next)=>{
   const VerifiedDocOder = new VerifiedDoctorOder({
     doctorName: req.body.doctorName,
@@ -169,5 +169,5 @@ async function sendMail(user, callback) {
 
   callback(info);
 }
-
+ */
   module.exports = router;

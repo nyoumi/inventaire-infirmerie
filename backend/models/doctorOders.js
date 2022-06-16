@@ -11,7 +11,8 @@ const doctorOderSchema = mongoose.Schema({
   drugQuantity: {type: Array , require:true},
   realQuantity: {type: Array , require:true},
   totalAmount : { type: String , require: true},
-  pickupDate : { type: String , require: true}
+  pickupDate : { type: String , require: true},
+  reason : { type: String , require : false }
 })
 
 module.exports = mongoose.model('DoctorOder',doctorOderSchema);

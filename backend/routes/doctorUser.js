@@ -1,4 +1,4 @@
-const express = require("express");
+ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const bcrypt = require("bcryptjs");
@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const checkDocAuth = require("../middleware/check-docAuth");
 
 const DoctorUser = require('../models/doctorUser');
-
+/*
 router.post("/doctorSignup",(req,res,next)=>{
 
   bcrypt.hash(req.body.password, 10)
@@ -131,5 +131,6 @@ router.get("/shoppingcart",(req,res,next)=>{
   console.log("sdfkjashdfjh");
 });
 
-
+*/
 module.exports = router;
+ 

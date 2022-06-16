@@ -13,7 +13,9 @@ const doctorOderRoutes = require('./routes/doctorOders');
 const verifiedDoctorOderRoutes = require('./routes/verifiedDoctorOder');
 const pickedUpOdersRoutes = require('./routes/pickedUpOders');
 
+const drugRoutes = require('./routes/drugs');
 
+const storeRoutes = require('./routes/store');
 
 
 const swaggerUi = require('swagger-ui-express');
@@ -22,11 +24,11 @@ const swaggerDocument = require("./swagger/swagger.json");
 
 const dotenv = require('dotenv');
 dotenv.config();
-console.log('database'+process.env.DATABASE);
+console.log('database address: '+process.env.DATABASE);
 
 
 //mongoose.connect("mongodb://imran:test_password@mongo:27017/?authSource=admin",{useNewUrlParser: true , useUnifiedTopology: true})
-mongoose.connect(process.env.DATABASE || "mongodb://localhost:27017",{useNewUrlParser: true , useUnifiedTopology: true})
+mongoose.connect(process.env.DATABASE || "mongodb://localhost:27017/inventaire",{useNewUrlParser: true , useUnifiedTopology: true})
 
   .then(()=>{
     console.log('connected to database!');
@@ -127,6 +129,8 @@ app.use((req,res,next)=>{
 // });
 
 app.use("/api/supplier",supplierRoutes);
+app.use("/api/drug",drugRoutes);
+app.use("/api/store",storeRoutes);
 app.use("/api/inventory",inventoryRoutes);
 app.use("/api/user",userRoutes);
 app.use("/api/sales",salesRoutes);

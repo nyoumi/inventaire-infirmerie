@@ -10,6 +10,8 @@ const MIME_TYPE_MAP ={
 };
 
 const Inventory = require('../models/inventory');
+const Drug = require('../models/drugs');
+
 
 const storage =multer.diskStorage({
   destination: (req, file ,cb) =>{
@@ -28,31 +30,47 @@ const storage =multer.diskStorage({
 });
 
 
-router.post("",multer({storage: storage}).single("image"),(req,res,next)=>{
+
+router.post("/",multer({storage: storage}).single("image"),(req,res,next)=>{
   const url =req.protocol + '://' + req.get("host");
   const inventory = new Inventory({
-    email: req.body.email,
-    name: req.body.name,
+    user_cuid: req.body.user_cuid,
+    drugId: req.body.drugId,
+    pharmacy: req.body.pharmacy,
     quantity: req.body.quantity,
-    batchId: req.body.batchId,
     expireDate: req.body.expireDate,
-    price: req.body.price,
+    batchId: req.body.batchId,
+    price: req.body.price
     //imagePath : url + "/images/" + req.file.filename
     });
   inventory.save().then(createdInventory=>{
-  res.status(201).json({
-      message:'Inventory Added Successfully',
-      inventory: {
-        ...createdInventory,
-        id : createdInventory._id
+    Drug.findById(inventory.drugId).then(drug =>{
+      if(drug){
+        drug.quantity=(drug.quantity|| 0) +inventory.quantity;
+        
+        drug.lastExpireDate = inventory.expireDate;
+        console.log(drug)
 
+        Drug.updateOne({_id: inventory.drugId}, drug).then(result => {
+          console.log(result);
+         
+        },err=>{
+          console.log(err);
+          res.status(204).json({message : "error updating drug"});
+        });
+      }else{
+        res.status(204).json({message:'Inventory not found'});
       }
-      });
+    });
+  res.status(201).json({...createdInventory._doc});
+  },err=>{
+    console.log(err);
+    res.status(204).json({message : "error creating inventory"});
   });
 });
 
 
-router.put("/:id",multer({storage: storage}).single("image"), (req,res,next)=>{
+/* router.put("/:id",multer({storage: storage}).single("image"), (req,res,next)=>{
 
   let imagePath = req.body.imagePath;
   if(req.file){
@@ -61,23 +79,26 @@ router.put("/:id",multer({storage: storage}).single("image"), (req,res,next)=>{
   };
   const inventory = new Inventory({
     _id: req.body.id,
-    email: req.body.email,
-    name: req.body.name,
+    user_cuid: req.body.user_cuid,
+    drugName: req.body.drugName,
+    pharmacy: req.body.pharmacy,
     quantity: req.body.quantity,
     batchId: req.body.batchId,
-    expireDate:new Date(req.body.expireDate),
-    price: req.body.price,
-    imagePath: imagePath
+    expireDate: req.body.expireDate,
+    price: req.body.price
   });
   console.log(inventory);
   Inventory.updateOne({_id: req.params.id}, inventory).then(result => {
     console.log(result);
     res.status(200).json({message : "Update Successful !"});
+  },err=>{
+    console.log(err);
+    res.status(204).json({message : "error updating inventory"});
   });
-});
+}); */
 
 
-router.put("/updateQuantity/:id",(req,res,next)=>{
+/* router.put("/updateQuantity/:id",(req,res,next)=>{
   const inventory = new Inventory({
     _id: req.body.id,
     quantity: req.body.quantity
@@ -88,23 +109,42 @@ router.put("/updateQuantity/:id",(req,res,next)=>{
     console.log(result);
     res.status(200).json({message : "Update quantity Successful !"});
   });
-});
+}); */
 
 
-router.get("",(req,res,next)=>{
+router.get("/",(req,res,next)=>{
   const pageSize = +req.query.pagesize;
   const currentPage = +req.query.page;
-  const postQuery = Inventory.find();
+  const pharmacyId = req.query.pharmacyId;
+
+  const drugId = req.query.drugId;
+
+
+  var postQuery;
+
+  if(drugId){
+    postQuery = Inventory.find({drugId:drugId});
+
+ }else{
+    if(pharmacyId){
+        postQuery = Inventory.find({pharmacy:pharmacyId});
+
+    }else{
+        postQuery = Inventory.find();
+
+    }
+ }
+  
   if(pageSize && currentPage){
     postQuery
       .skip(pageSize * (currentPage-1))
       .limit(pageSize);
   }
   postQuery.then(documents=>{
-    res.status(200).json({
-      message : 'inventory added sucessfully',
-      inventorys :documents
-    });
+    res.status(200).json(documents);
+  },err=>{
+    console.log(err);
+    res.status(204).json({message : "error reading inventory list"});
   });
 });
 
@@ -112,17 +152,23 @@ router.get("",(req,res,next)=>{
 router.get("/outofstock",(req,res,next)=>{
   const pageSize = +req.query.pagesize;
   const currentPage = +req.query.page;
-  const postQuery = Inventory.find({ $expr: { $lte: [ { $toDouble: "$quantity" }, 1.0 ] }});
+
+  const pharmacyId = req.query.pharmacyId;
+  var postQuery;
+  if(pharmacyId){
+    postQuery = Drug.find({ $expr: { $lte: [ { $toDouble: "$quantity" }, 1.0 ] },pharmacy:pharmacyId});
+
+  }else{
+    postQuery = Drug.find({ $expr: { $lte: [ { $toDouble: "$quantity" }, 1.0 ] }});
+
+  }
   if(pageSize && currentPage){
     postQuery
       .skip(pageSize * (currentPage-1))
       .limit(pageSize);
   }
   postQuery.then(documents=>{
-    res.status(200).json({
-      message : 'inventory min quanity items obtained  sucessfully',
-      inventorys :documents
-    });
+    res.status(200).json(documents);
   });
 });
 
@@ -130,82 +176,113 @@ router.get("/outofstock",(req,res,next)=>{
 router.get("/abouttooutofstock",(req,res,next)=>{
   const pageSize = +req.query.pagesize;
   const currentPage = +req.query.page;
-  const postQuery = Inventory.find({$and: [
-                                    { $expr: { $lte: [ { $toDouble: "$quantity" }, 500.0 ] }},
-                                    { $expr: { $gte: [ { $toDouble: "$quantity" }, 1.0 ] }}
-                                  ]});
+
+  const pharmacyId = req.query.pharmacyId;
+
+  var postQuery ;
+  if(pharmacyId){
+    postQuery = Drug.find({$and: [
+      { $expr: { $lte: [ { $toDouble: "$quantity" }, 30.0 ] }},
+      { $expr: { $gte: [ { $toDouble: "$quantity" }, 1.0 ] }}
+    ],pharmacy:pharmacyId});
+
+  }else{
+    postQuery = Drug.find({$and: [
+      { $expr: { $lte: [ { $toDouble: "$quantity" }, 30.0 ] }},
+      { $expr: { $gte: [ { $toDouble: "$quantity" }, 1.0 ] }}
+    ]});
+
+  }
+
+
   if(pageSize && currentPage){
     postQuery
       .skip(pageSize * (currentPage-1))
       .limit(pageSize);
   }
   postQuery.then(documents=>{
-    res.status(200).json({
-      message : 'inventory min quanity items obtained  sucessfully',
-      inventorys :documents
-    });
+    res.status(200).json(documents);
   });
 });
 
 router.get("/getExpired",(req,res,next)=>{
   const pageSize = +req.query.pagesize;
   const currentPage = +req.query.page;
-  const postQuery = Inventory.find({expireDate:{$lte:new Date()}});
+  const pharmacyId = req.query.pharmacyId;
+  var postQuery
+  if(pharmacyId){
+     postQuery = Drug.find({lastExpireDate:{$lte:new Date()},pharmacy:pharmacyId});
+
+  }else{
+     postQuery = Drug.find({lastExpireDate:{$lte:new Date()}});
+  }
+
   if(pageSize && currentPage){
     postQuery
       .skip(pageSize * (currentPage-1))
       .limit(pageSize);
   }
   postQuery.then(documents=>{
-    res.status(200).json({
-      message : 'inventory added sucessfully',
-      inventorys :documents
-    });
+    res.status(200).json(documents);
   });
 });
 
 router.get("/getAboutToExpire",(req,res,next)=>{
   const pageSize = +req.query.pagesize;
   const currentPage = +req.query.page;
+  
   var date = new Date();
   var date10 = new Date(date.getTime());
   date10.setDate(date10.getDate() + 10);
 
-  const postQuery = Inventory.find({expireDate:{$lte:new Date(date10),$gte:new Date()}});
+  const pharmacyId = req.query.pharmacyId;
+  var postQuery ;
+  if(pharmacyId){
+    postQuery = Drug.find({lastExpireDate:{$lte:new Date(date10),$gte:new Date()},pharmacy:pharmacyId});
+
+  }else{
+    postQuery = Drug.find({lastExpireDate:{$lte:new Date(date10),$gte:new Date()}});
+  }
+
   if(pageSize && currentPage){
     postQuery
       .skip(pageSize * (currentPage-1))
       .limit(pageSize);
   }
   postQuery.then(documents=>{
-    res.status(200).json({
-      message : 'inventory added sucessfully',
-      inventorys :documents
-    });
+    res.status(200).json(documents);
   });
 });
 
 
 router.get("/:id",(req,res,next)=>{
+
   Inventory.findById(req.params.id).then(inventory =>{
     if(inventory){
       res.status(200).json(inventory);
     }else{
       res.status(200).json({message:'Inventory not found'});
     }
+  },err=>{
+    console.log(err)
+    res.status(204).json({message:'Inventory not found'});
   });
 });
 
 
-router.delete("/:id", (req, res, next) => {
+
+/* router.delete("/:id", (req, res, next) => {
   Inventory.deleteOne({ _id: req.params.id }).then(result => {
     console.log(result);
     res.status(200).json({ message: 'Inventory deleted!' });
+  },err=>{
+    console.log(err)
+    res.status(204).json({message:'Inventory not found'});
   });
-});
+}); */
 
 
-router.post("/sendmail", (req, res) => {
+/* router.post("/sendmail", (req, res) => {
   console.log("request came");
   let user = req.body;
   sendMail(user, info => {
@@ -222,8 +299,8 @@ async function sendMail(user, callback) {
     port: 587,
     secure: false, // true for 465, false for other ports
     auth: {
-      user: "pharmacare.contactus@gmail.com",
-      pass: "lalana1011294"
+      user: "nyoumipaulius@gmail.com",
+      pass: "Africa21"
     }
   });
 
@@ -237,6 +314,11 @@ async function sendMail(user, callback) {
       table {
         font-family: arial, sans-serif;
         border-collapse: collapse;
+        width: 100%;
+      }
+      table {
+        font-family: arial, sans-serif;
+        background: "#abcdef";
         width: 100%;
       }
 
@@ -300,11 +382,11 @@ async function sendMail(user, callback) {
   let info = await transporter.sendMail(mailOptions);
 
   callback(info);
-}
+} */
 
 
 
-
+/* 
 router.post("/sendmailOutOfStock", (req, res) => {
   console.log("request came");
   let user = req.body;
@@ -400,6 +482,6 @@ async function sendmailOutOfStock(user, callback) {
   let info = await transporter.sendMail(mailOptions);
 
   callback(info);
-}
+} */
 
 module.exports = router;

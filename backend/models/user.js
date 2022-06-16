@@ -9,7 +9,6 @@ const userSchema = mongoose.Schema({
   password: {type: String , require:true},
   role: {type: String , require:true},
   dateTime: {type: Date, default: Date.now , require:true},
-  pharmacy: {type: String , require:false},
 
 });
 
