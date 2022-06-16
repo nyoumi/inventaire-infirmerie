@@ -11,6 +11,10 @@ const MIME_TYPE_MAP ={
 
 const Inventory = require('../models/inventory');
 const Drug = require('../models/drugs');
+const Sale = require('../models/sales');
+const Store = require('../models/store');
+
+
 
 
 const storage =multer.diskStorage({
@@ -43,6 +47,8 @@ router.post("/",multer({storage: storage}).single("image"),(req,res,next)=>{
     price: req.body.price
     //imagePath : url + "/images/" + req.file.filename
     });
+    //error =inventory.validateSync();
+    //console.log(error)
   inventory.save().then(createdInventory=>{
     Drug.findById(inventory.drugId).then(drug =>{
       if(drug){
@@ -65,10 +71,9 @@ router.post("/",multer({storage: storage}).single("image"),(req,res,next)=>{
   res.status(201).json({...createdInventory._doc});
   },err=>{
     console.log(err);
-    res.status(204).json({message : "error creating inventory"});
+    res.status(204).json({message : err});
   });
 });
-
 
 /* router.put("/:id",multer({storage: storage}).single("image"), (req,res,next)=>{
 
@@ -211,10 +216,10 @@ router.get("/getExpired",(req,res,next)=>{
   const pharmacyId = req.query.pharmacyId;
   var postQuery
   if(pharmacyId){
-     postQuery = Drug.find({lastExpireDate:{$lte:new Date()},pharmacy:pharmacyId});
+     postQuery = Drug.find({lastExpireDate:{$lte:new Date()},pharmacy:pharmacyId,$expr: { $gte: [ { $toDouble: "$quantity" }, 0.0 ] }});
 
   }else{
-     postQuery = Drug.find({lastExpireDate:{$lte:new Date()}});
+     postQuery = Drug.find({quantity:{$gte:1},lastExpireDate:{$lte:new Date()}});
   }
 
   if(pageSize && currentPage){
@@ -238,10 +243,10 @@ router.get("/getAboutToExpire",(req,res,next)=>{
   const pharmacyId = req.query.pharmacyId;
   var postQuery ;
   if(pharmacyId){
-    postQuery = Drug.find({lastExpireDate:{$lte:new Date(date10),$gte:new Date()},pharmacy:pharmacyId});
+    postQuery = Drug.find({lastExpireDate:{$lte:new Date(date10),$gte:new Date()},pharmacy:pharmacyId,$expr: { $lte: [ { $toDouble: "$quantity" }, 1.0 ] }});
 
   }else{
-    postQuery = Drug.find({lastExpireDate:{$lte:new Date(date10),$gte:new Date()}});
+    postQuery = Drug.find({lastExpireDate:{$lte:new Date(date10),$gte:new Date()},$expr: { $lte: [ { $toDouble: "$quantity" }, 1.0 ] }});
   }
 
   if(pageSize && currentPage){
@@ -255,6 +260,41 @@ router.get("/getAboutToExpire",(req,res,next)=>{
 });
 
 
+router.get("/statistics",async (req,res,next)=>{
+  const pharmacyId = req.query.pharmacyId;
+  var postQuery
+  var sales;
+  var inventories;
+  var drugs;
+  if(pharmacyId){
+    await Sale.countDocuments({ pharmacy: pharmacyId }).then(saless=>{
+      sales= saless
+    });
+    await Inventory.countDocuments({ pharmacy: pharmacyId }).then(inv=>{
+      inventories= inv
+    });
+   await Drug.countDocuments({ pharmacy: pharmacyId }).then(drug=>{
+    drugs= drug;
+    });
+
+    res.status(200).json({"sales":sales,"inventories":inventories,"drugs":drugs});
+  }else{
+    await Sale.countDocuments().then(saless=>{
+      sales= saless
+    });
+    await Inventory.countDocuments().then(inv=>{
+      inventories= inv
+    });
+   await Drug.countDocuments().then(drug=>{
+    drugs= drug;
+    });
+
+    res.status(200).json({"sales":sales,"inventories":inventories,"drugs":drugs});
+  }
+
+  
+ 
+});
 router.get("/:id",(req,res,next)=>{
 
   Inventory.findById(req.params.id).then(inventory =>{
@@ -268,6 +308,7 @@ router.get("/:id",(req,res,next)=>{
     res.status(204).json({message:'Inventory not found'});
   });
 });
+
 
 
 

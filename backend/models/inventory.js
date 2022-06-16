@@ -6,7 +6,7 @@ const inventorySchema = mongoose.Schema({
   pharmacy: {type: String , require:true},
   quantity: {type: Number  , require:true},
   batchId: {type: String , require:false},
-  expireDate: {type: Date , require:true},
+  expireDate: {type: Date ,required: [true, "expireDate is a required field"]},
   creationDate: {type: Date , require:true, default: Date.now },
   price: {type: Number , require:true,default: 0}
 })

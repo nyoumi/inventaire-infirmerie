@@ -5,19 +5,24 @@ const checkAuth = require("../middleware/check-auth");
 const Sales = require('../models/sales');
 const Drug = require('../models/drugs');
 
-router.post("",(req,res,next)=>{
+router.post("/",(req,res,next)=>{
+  
   const sales = new Sales({
-    drugName: String= req.body.drugName,
+    drugName:  req.body.drugName,
     drugId: req.body.drugId,
-    dateTime:Date= req.body.dateTime,
-    quantity :Number=  req.body.quantity,
+    dateTime:req.body.dateTime,
+    quantity :  req.body.quantity,
     pharmacy: req.body.pharmacy,
-    user_cuid : req.body.user_cuid
+    user_cuid : req.body.user_cuid,
+    reason : req.body.reason
+
   });
 
 
+  console.log("before drug find")
     Drug.findById(sales.drugId).then(drug =>{
       if(drug){
+        console.log("drug found")
         drug.quantity=(drug.quantity|| 0) - sales.quantity;
         console.log(drug)
 
@@ -32,12 +37,14 @@ router.post("",(req,res,next)=>{
             console.log(err);
             res.status(204).json({message : "error updating drug"});
           });
+        }else{
+          res.status(204).json({message:'not enough in stock'});
         }
         
 
        
       }else{
-        res.status(204).json({message:'Inventory not found'});
+        res.status(204).json({message:'drug not found'});
       }
     },err=>{
       console.log(err)
@@ -97,23 +104,7 @@ router.post("",(req,res,next)=>{
   });
 
 
-  router.get("/getSalesChartInfo",(req,res,next)=>{
-
-    Sales.aggregate([{ "$project": {
-                                        "paidAmount": 1,
-                                        "month": { "$month": "$dateTime" }
-                                    }},
-                                    { "$group": {
-                                        "_id": "$month",
-                                        "total": { "$sum": { $toDouble: "$paidAmount" }}
-                                    }}
-                                  ])
-    .then(documents=>{
-      res.status(200).json(
-        documents
-      );
-    });
-  });
+  
 
 
 

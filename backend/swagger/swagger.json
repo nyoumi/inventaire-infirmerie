@@ -411,6 +411,11 @@
             "name": "pharmacyId",
             "in": "query",
             "type": "string"
+          },
+          {
+            "name": "drugId",
+            "in": "query",
+            "type": "string"
           }
         ],
         "responses": {
@@ -518,6 +523,23 @@
             "in": "query",
             "type": "string"
           },
+          {
+            "name": "pharmacyId",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/inventory/statistics": {
+      "get": {
+        "description": "",
+        "parameters": [
           {
             "name": "pharmacyId",
             "in": "query",
@@ -716,6 +738,49 @@
       }
     },
     "/api/sales/": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "drugName": {
+                  "example": "any"
+                },
+                "drugId": {
+                  "example": "any"
+                },
+                "dateTime": {
+                  "example": "any"
+                },
+                "quantity": {
+                  "example": "any"
+                },
+                "pharmacy": {
+                  "example": "any"
+                },
+                "user_cuid": {
+                  "example": "any"
+                },
+                "reason": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "204": {
+            "description": "No Content"
+          }
+        }
+      },
       "get": {
         "description": "",
         "parameters": [
@@ -767,17 +832,6 @@
           },
           "204": {
             "description": "No Content"
-          }
-        }
-      }
-    },
-    "/api/sales/getSalesChartInfo": {
-      "get": {
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
           }
         }
       }
